@@ -5,7 +5,15 @@ export default async function handler(req, res) {
     if (req.method === "OPTIONS") return res.status(200).end();
     if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
 
-    const { email, code } = req.body;
+    const body = req.body || (await new Promise((resolve, reject) => {
+      let data = "";
+      req.on("data", chunk => data += chunk);
+      req.on("end", () => resolve(JSON.parse(data)));
+      req.on("error", err => reject(err));
+    }));
+
+    const { email, code } = body;
+
     if (!email || !code) return res.status(400).json({ message: "Email and OTP are required" });
 
     const { db } = await connectToDB();
@@ -24,3 +32,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 }
+
