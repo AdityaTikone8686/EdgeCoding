@@ -74,7 +74,7 @@ export default function Navbar({ isDark, toggleTheme, onOpenAuth }) {
                             {/* Auth Buttons */}
                             <div className="hidden md:flex items-center gap-2">
                                 <button
-                                    onClick={() => navigate('/AuthSystem')}
+                                    onClick={() => navigate('/login')}
                                     className="px-4 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10 transition-all"
                                 >
                                     Login
@@ -125,7 +125,7 @@ export default function Navbar({ isDark, toggleTheme, onOpenAuth }) {
                             ))}
                             <div className="border-t border-white/10 mt-2 pt-2 flex flex-col gap-2">
                                 <button
-                                    onClick={() => { navigate('/AuthSystem'); setMobileOpen(false); }}
+                                    onClick={() => { navigate('/login'); setMobileOpen(false); }}
                                     className="px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all font-medium text-left"
                                 >
                                     Login
