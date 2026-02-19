@@ -1,36 +1,25 @@
-import otpStore from "./otpStore.js";
-
-export default async function handler(req, res) {
-  // CORS headers
-  res.setHeader("Access-Control-Allow-Origin", "https://edge-coding.vercel.app");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") return res.status(200).end();
+export default async function verifyOtp(req, res) {
   if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
 
+  const { email, code } = req.body;
+  if (!email || !code) return res.status(400).json({ message: "Email and OTP are required" });
+
+  const db = req.app.locals.db;
+
   try {
-    // Parse JSON manually
-    const body = await req.json?.() || JSON.parse(req.body || "{}");
-    const { email, code } = body;
+    const record = await db.collection("otps").findOne({ email });
+    if (!record) return res.status(400).json({ message: "No OTP found for this email" });
 
-    if (!email || !code) return res.status(400).json({ message: "Email and OTP are required" });
+    if (record.expiresAt < Date.now()) return res.status(400).json({ message: "OTP expired" });
+    if (record.otp !== code) return res.status(400).json({ message: "Invalid OTP" });
 
-    const record = otpStore[email];
-    if (!record) return res.status(400).json({ message: "OTP not found. Please request a new one." });
+    // OTP verified → remove from DB
+    await db.collection("otps").deleteOne({ email });
 
-    if (Date.now() > record.expires) {
-      delete otpStore[email];
-      return res.status(400).json({ message: "OTP expired. Please request a new one." });
-    }
-
-    if (record.code !== code) return res.status(400).json({ message: "Invalid OTP" });
-
-    // OTP verified
-    delete otpStore[email];
-    return res.status(200).json({ success: true, message: "OTP verified" });
+    res.status(200).json({ success: true, message: "OTP verified" });
   } catch (err) {
-    console.error("verify-otp error:", err);
-    return res.status(500).json({ message: "Internal server error" });
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 }
+
