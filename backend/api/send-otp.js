@@ -1,44 +1,43 @@
 // api/send-otp.js
-import otpStore from "./otpStore.js";
 import nodemailer from "nodemailer";
 
-export default async function handler(req, res) {
-  // CORS headers
-  res.setHeader("Access-Control-Allow-Origin", "https://edge-coding.vercel.app");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") return res.status(200).end();
+export default async function sendOtp(req, res) {
   if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
 
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Email is required" });
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const db = req.app.locals.db;
+
   try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ message: "Email is required" });
+    // Save OTP to DB
+    await db.collection("otps").updateOne(
+      { email },
+      { $set: { otp, expiresAt: Date.now() + parseInt(process.env.OTP_EXPIRY) * 1000 } },
+      { upsert: true }
+    );
 
-    // Generate 6-digit OTP
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    otpStore[email] = { code, expires: Date.now() + 5 * 60 * 1000 }; // expires in 5 min
-
-    // Email transporter
+    // Send OTP via email
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
+        pass: process.env.EMAIL_PASS
+      }
     });
 
-    // Send OTP email
     await transporter.sendMail({
-      from: `"CodeQuest" <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_USER,
       to: email,
       subject: "Your OTP Code",
-      text: `Your OTP is: ${code}. It expires in 5 minutes.`,
+      text: `Your OTP is: ${otp}. It expires in ${process.env.OTP_EXPIRY / 60} minutes.`
     });
 
-    return res.status(200).json({ success: true, message: "OTP sent" });
+    res.status(200).json({ success: true, message: "OTP sent" });
   } catch (err) {
-    console.error("send-otp error:", err);
-    return res.status(500).json({ message: "Internal server error" });
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 }
+
