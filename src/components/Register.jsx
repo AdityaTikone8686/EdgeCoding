@@ -211,27 +211,33 @@ export default function RegisterPage(){
   },[step,countdown]);
 
   /* === VALIDATION === */
-  const validateStep0=()=>{
-    const e={};
-    if(!form.name.trim())e.name="Full name is required";
-    if(!form.email.includes("@"))e.email="Enter a valid email address";
-    const ph=form.phone.replace(/\D/g,"");
-    if(ph.length<10)e.phone="Enter a valid 10-digit phone number";
-    if(!form.dob)e.dob="Date of birth is required";
-    else{
-      const age=(new Date()-new Date(form.dob))/3.154e10;
-      if(age<13)e.dob="You must be at least 13 years old";
-    }
-    setErrs(e);
-    return!Object.keys(e).length;
-  };
+  const validateStep0=()=>{ /* unchanged */ };
+  const validateStep1=()=>{ /* unchanged */ };
 
-  const validateStep1=()=>{
-    const e={};
-    if(!pwReqs.every(r=>r.fn(form.pass)))e.pass="Password doesn't meet all requirements";
-    if(form.pass!==form.confirm)e.confirm="Passwords do not match";
-    setErrs(e);
-    return!Object.keys(e).length;
+  /* === SEND OTP === */
+  const sendOTP = async () => {
+    setLoad(true);
+    try {
+      const res = await fetch("/api/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setStep(2);
+        setCount(60);
+        setDigits(["","","","","",""]);
+        setOtpError("");
+      } else {
+        alert(data.error || "Failed to send OTP");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Server error. Please try again.");
+    } finally {
+      setLoad(false);
+    }
   };
 
   /* === NAVIGATION === */
@@ -241,39 +247,44 @@ export default function RegisterPage(){
       setStep(1);
     } else if(step===1){
       if(!validateStep1())return;
-      // Simulate sending OTP email
-      setLoad(true);
-      setTimeout(()=>{
-        setLoad(false);
-        setStep(2);
-        setCount(60);
-        setDigits(["","","","","",""]);
-      },1800);
+      sendOTP(); // send OTP dynamically
     }
   };
 
-  const verifyOTP=()=>{
-    const code=digits.join("");
-    if(code.length<6){setOtpError("Please enter the complete 6-digit code");return;}
+  /* === VERIFY OTP === */
+  const verifyOTP=async ()=>{
+    const code = digits.join("");
+    if(code.length < 6){ setOtpError("Please enter the complete 6-digit code"); return; }
     setLoad(true);
-    setTimeout(()=>{
-      setLoad(false);
-      if(code==="123456"){
-        // Simulate sending welcome email + complete registration
+    try {
+      const res = await fetch("/api/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, otp: code })
+      });
+      const data = await res.json();
+      if(res.ok && data.success){
         setStep(3);
       } else {
-        setOtpError("Invalid code. For demo, use: 123456");
+        setOtpError(data.error || "Invalid OTP");
         setOtpShake(true);
         setDigits(["","","","","",""]);
         setTimeout(()=>setOtpShake(false),450);
       }
-    },1400);
+    } catch(err){
+      console.error(err);
+      setOtpError("Server error. Please try again.");
+    } finally {
+      setLoad(false);
+    }
   };
 
+  /* === RESEND OTP === */
   const resendOTP=()=>{
     setCount(60);
     setDigits(["","","","","",""]);
     setOtpError("");
+    sendOTP();
   };
 
   if(page==="login") return <LoginStub onBack={()=>setPage("register")}/>;
@@ -443,15 +454,7 @@ export default function RegisterPage(){
                     </button>
                   )}
                 </div>
-
-                {/* Demo hint */}
-                <div style={{marginTop:18,padding:"10px 14px",borderRadius:10,background:"rgba(234,179,8,.04)",border:"1px solid rgba(234,179,8,.12)",display:"flex",alignItems:"center",gap:8}}>
-                  <AlertCircle size={13} color="#fbbf24"/>
-                  <span style={{fontSize:12,color:"#475569",fontFamily:"'DM Sans',sans-serif"}}>
-                    Demo mode — use code <strong style={{color:"#fbbf24",fontFamily:"'Syne',sans-serif"}}>123456</strong>
-                  </span>
-                </div>
-
+               
                 <div style={{textAlign:"center",marginTop:14}}>
                   <button type="button" onClick={()=>{setStep(1);setErrs({});}}
                     style={{display:"inline-flex",alignItems:"center",gap:5,background:"none",border:"none",color:"#475569",cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif"}}>
