@@ -194,7 +194,7 @@ export default function LoginPage(){
               <h1 style={{fontFamily:"'Syne',sans-serif",fontSize:26,fontWeight:800,color:"#fff",marginBottom:6,lineHeight:1.2}}>Welcome back</h1>
               <p style={{fontSize:14,color:"#64748b",marginBottom:28,fontFamily:"'DM Sans',sans-serif"}}>
                 New here?{" "}
-                <LinkBtn onClick={()=>setPage("register")}>Create an account →</LinkBtn>
+                <LinkBtn onClick={()=>setPage("/register")}>Create an account →</LinkBtn>
               </p>
 
               {/* Fields */}
