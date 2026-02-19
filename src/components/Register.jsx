@@ -210,10 +210,28 @@ export default function RegisterPage(){
     return()=>clearTimeout(t);
   },[step,countdown]);
 
-  /* === VALIDATION === */
-  const validateStep0=()=>{ /* unchanged */ };
-  const validateStep1=()=>{ /* unchanged */ };
+ /* === VALIDATION === */
+const validateStep0 = () => {
+  const errsTemp = {};
+  if (!form.name.trim()) errsTemp.name = "Full name is required";
+  if (!form.email.trim()) errsTemp.email = "Email is required";
+  else if (!/^\S+@\S+\.\S+$/.test(form.email)) errsTemp.email = "Invalid email address";
+  if (!form.phone.trim()) errsTemp.phone = "Phone number is required";
+  if (!form.dob.trim()) errsTemp.dob = "Date of birth is required";
+  setErrs(errsTemp);
+  return Object.keys(errsTemp).length === 0;
+};
 
+const validateStep1 = () => {
+  const errsTemp = {};
+  if (!form.pass) errsTemp.pass = "Password is required";
+  else if (form.pass.length < 8) errsTemp.pass = "Password must be at least 8 characters";
+  if (!form.confirm) errsTemp.confirm = "Confirm your password";
+  else if (form.pass !== form.confirm) errsTemp.confirm = "Passwords do not match";
+  setErrs(errsTemp);
+  return Object.keys(errsTemp).length === 0;
+};
+  
  /* === SEND OTP === */
 const sendOTP = async () => {
   setLoad(true);
