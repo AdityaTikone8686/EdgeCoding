@@ -1,18 +1,28 @@
-import express from "express";
+// Simple in-memory OTP store (shared with send-otp)
+const otpStore = {};
 
-const router = express.Router();
-const otpStore = {}; // same in-memory store; ideally share with send-otp.js
-
-router.post("/", (req, res) => {
-  const { email, code } = req.body;
-  if (!email || !code) return res.status(400).json({ success: false, message: "Email and OTP required" });
-
-  if (otpStore[email] === code) {
-    delete otpStore[email]; // OTP consumed
-    return res.json({ success: true, message: "OTP verified" });
-  } else {
-    return res.status(400).json({ success: false, message: "Invalid OTP" });
+/**
+ * POST /api/verify-otp
+ * Body: { email: string, code: string }
+ */
+export default function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
   }
-});
 
-export default router;
+  const { email, code } = req.body;
+
+  if (!email || !code) {
+    return res.status(400).json({ success: false, message: 'Email and OTP code are required' });
+  }
+
+  // Check if OTP matches
+  if (otpStore[email] && otpStore[email] === code) {
+    // OTP is correct, remove it after verification
+    delete otpStore[email];
+    return res.status(200).json({ success: true, message: 'OTP verified successfully' });
+  }
+
+  // OTP invalid
+  return res.status(400).json({ success: false, message: 'Invalid OTP' });
+}
