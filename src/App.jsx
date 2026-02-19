@@ -7,7 +7,7 @@ import HowItWorksSection from './components/HowItWorksSection';
 import CoursePreviewSection from './components/CoursePreviewSection';
 import AboutSection from './components/AboutSection';
 import DashboardPreview from './components/DashboardPreview';
-import AuthModal from './components/AuthModal';
+import AuthModal from './components/AuthSystem';
 import Footer from './components/Footer';
 
 export default function App() {
