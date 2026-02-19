@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from 'react-router-dom';
 import {
   User, Mail, Phone, Calendar, Lock, Eye, EyeOff,
   ArrowRight, ArrowLeft, Zap, AlertCircle, CheckCircle2,
@@ -197,7 +198,8 @@ export default function RegisterPage(){
   const [otpShake,setOtpShake]=useState(false);
   const [countdown,setCount]=useState(60);
   const [loading,setLoad]=useState(false);
-  const [page,setPage]=useState("register"); // for back-to-login nav
+  const [page,setPage]=useState("register");
+  const navigate = useNavigate();
 
   const upd=(k,v)=>setForm(p=>({...p,[k]:v}));
 
@@ -297,7 +299,7 @@ export default function RegisterPage(){
                 <span style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:18,color:"#fff"}}>Code<span style={{color:"#8b5cf6"}}>Quest</span></span>
               </div>
               {step<3&&(
-                <GhostBtn onClick={()=>setPage("login")}>
+                <GhostBtn onClick={()=> navigate("/login")}>
                   <ArrowLeft size={13}/>Back to Login
                 </GhostBtn>
               )}
