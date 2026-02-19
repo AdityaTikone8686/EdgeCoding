@@ -14,6 +14,7 @@ const navLinks = [
 export default function Navbar({ isDark, toggleTheme, onOpenAuth }) {
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 20);
