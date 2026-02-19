@@ -123,7 +123,7 @@ export default function Navbar({ isDark, toggleTheme, onOpenAuth }) {
                             ))}
                             <div className="border-t border-white/10 mt-2 pt-2 flex flex-col gap-2">
                                 <button
-                                    onClick={() => { onOpenAuth('login'); setMobileOpen(false); }}
+                                    onClick={() => { navigate('/AuthSystem'); setMobileOpen(false); }}
                                     className="px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all font-medium text-left"
                                 >
                                     Login
