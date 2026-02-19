@@ -1,20 +1,24 @@
 import { MongoClient } from "mongodb";
 
-let cachedClient = null;
-let cachedDb = null;
+let client;
+let clientPromise;
+
+if (!process.env.MONGODB_URI) throw new Error("Missing MONGODB_URI");
+
+if (process.env.NODE_ENV === "development") {
+  // In dev, use global variable to prevent multiple connections
+  if (!global._mongoClientPromise) {
+    client = new MongoClient(process.env.MONGODB_URI);
+    global._mongoClientPromise = client.connect();
+  }
+  clientPromise = global._mongoClientPromise;
+} else {
+  client = new MongoClient(process.env.MONGODB_URI);
+  clientPromise = client.connect();
+}
 
 export async function connectToDB() {
-  if (cachedClient && cachedDb) return { client: cachedClient, db: cachedDb };
-
-  if (!process.env.MONGODB_URI || !process.env.DB_NAME)
-    throw new Error("Missing MongoDB environment variables");
-
-  const client = new MongoClient(process.env.MONGODB_URI);
-  await client.connect();
-  const db = client.db(process.env.DB_NAME);
-
-  cachedClient = client;
-  cachedDb = db;
-
+  const client = await clientPromise;
+  const db = client.db("edgecoding"); // match your DB name
   return { client, db };
 }
