@@ -214,31 +214,31 @@ export default function RegisterPage(){
   const validateStep0=()=>{ /* unchanged */ };
   const validateStep1=()=>{ /* unchanged */ };
 
-  /* === SEND OTP === */
-  const sendOTP = async () => {
-    setLoad(true);
-    try {
-      const res = await fetch("/api/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.email })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setStep(2);
-        setCount(60);
-        setDigits(["","","","","",""]);
-        setOtpError("");
-      } else {
-        alert(data.error || "Failed to send OTP");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Server error. Please try again.");
-    } finally {
-      setLoad(false);
+ /* === SEND OTP === */
+const sendOTP = async () => {
+  setLoad(true);
+  try {
+    const res = await fetch("http://localhost:4000/api/send-otp", { // update URL if needed
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: form.email })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      setStep(2);
+      setCount(60);
+      setDigits(["","","","","",""]);
+      setOtpError("");
+    } else {
+      alert(data.message || "Failed to send OTP");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Server error. Please try again.");
+  } finally {
+    setLoad(false);
+  }
+};
 
   /* === NAVIGATION === */
   const nextStep=()=>{
@@ -252,40 +252,43 @@ export default function RegisterPage(){
   };
 
   /* === VERIFY OTP === */
-  const verifyOTP=async ()=>{
-    const code = digits.join("");
-    if(code.length < 6){ setOtpError("Please enter the complete 6-digit code"); return; }
-    setLoad(true);
-    try {
-      const res = await fetch("/api/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.email, otp: code })
-      });
-      const data = await res.json();
-      if(res.ok && data.success){
-        setStep(3);
-      } else {
-        setOtpError(data.error || "Invalid OTP");
-        setOtpShake(true);
-        setDigits(["","","","","",""]);
-        setTimeout(()=>setOtpShake(false),450);
-      }
-    } catch(err){
-      console.error(err);
-      setOtpError("Server error. Please try again.");
-    } finally {
-      setLoad(false);
+const verifyOTP = async () => {
+  const code = digits.join("");
+  if (code.length < 6) {
+    setOtpError("Please enter the complete 6-digit code");
+    return;
+  }
+  setLoad(true);
+  try {
+    const res = await fetch("http://localhost:4000/api/verify-otp", { // update URL if needed
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: form.email, code })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      setStep(3);
+    } else {
+      setOtpError(data.message || "Invalid OTP");
+      setOtpShake(true);
+      setDigits(["","","","","",""]);
+      setTimeout(() => setOtpShake(false), 450);
     }
-  };
+  } catch (err) {
+    console.error(err);
+    setOtpError("Server error. Please try again.");
+  } finally {
+    setLoad(false);
+  }
+};
 
-  /* === RESEND OTP === */
-  const resendOTP=()=>{
-    setCount(60);
-    setDigits(["","","","","",""]);
-    setOtpError("");
-    sendOTP();
-  };
+ /* === RESEND OTP === */
+const resendOTP = () => {
+  setCount(60);
+  setDigits(["","","","","",""]);
+  setOtpError("");
+  sendOTP();
+};
 
   if(page==="login") return <LoginStub onBack={()=>setPage("register")}/>;
 
