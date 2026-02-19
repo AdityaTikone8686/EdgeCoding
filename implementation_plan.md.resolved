@@ -1,0 +1,117 @@
+# Interactive Learning Platform – Implementation Plan
+
+Build a full-stack interactive programming education platform called **CodePath** — students learn Python (and more languages), solve DSA problems, earn XP, level up, and track their daily streak.
+
+> [!IMPORTANT]
+> This builds a complete working app with realistic seeded data. We start focused: **Python** as the first language + **Arrays & Strings** as the first DSA module, with a scalable foundation to add more later.
+
+---
+
+## Proposed Changes
+
+### Monorepo Structure
+
+```
+f:/futf/
+├── frontend/    ← Next.js 14 app
+└── backend/     ← Express.js API
+```
+
+---
+
+### Backend — `f:/futf/backend`
+
+#### [NEW] Project scaffold
+- `package.json` with Express, Mongoose, JWT, bcrypt, cors, dotenv, nodemon
+- `src/index.js` — app entry point
+- `.env` — MongoDB URI, JWT secret, Judge0 API key
+
+#### [NEW] Models
+- `src/models/User.js` — `{ name, email, password, xp, level, streak, lastActive, completedLessons[], badges[] }`
+- `src/models/Course.js` — `{ language, title, modules[{ title, lessons[{ title, content, codeExample, challenge }] }] }`
+- `src/models/Problem.js` — `{ title, description, difficulty, tags[], testCases[], starterCode }`
+- `src/models/Submission.js` — `{ userId, problemId, code, status, language, runtime }`
+
+#### [NEW] Routes
+- `src/routes/auth.js` — POST `/register`, POST `/login`
+- `src/routes/user.js` — GET `/me`, PUT `/progress` (update XP, streak, completedLessons)
+- `src/routes/courses.js` — GET `/courses`, GET `/courses/:id`, GET `/courses/:id/lessons/:lessonId`
+- `src/routes/problems.js` — GET `/problems`, GET `/problems/:id`, POST `/problems/:id/submit`
+- `src/routes/execute.js` — POST `/execute` (proxy to Judge0)
+
+#### [NEW] Seed Data
+- `src/seed/pythonCourse.js` — Full Python syllabus (Beginner → Advanced) with 3 modules, ~12 lessons
+- `src/seed/dsaProblems.js` — 10 Arrays/Strings problems (Easy/Medium/Hard) with test cases
+
+---
+
+### Frontend — `f:/futf/frontend`
+
+#### [NEW] Next.js 14 App (App Router)
+
+Tech stack: **Next.js 14 + Tailwind CSS + Framer Motion + Monaco Editor + ShadCN UI**
+
+#### Key Pages & Components
+
+| Route | Description |
+|---|---|
+| `/` | Landing page — hero, features, CTA |
+| `/login` `/register` | Auth pages |
+| `/dashboard` | User dashboard — XP, streak, progress |
+| `/learn` | Language selection grid |
+| `/learn/[language]` | Course overview with module tree |
+| `/learn/[language]/[lessonId]` | Lesson page — concept + Monaco Editor + quiz |
+| `/dsa` | DSA problem listing with filters |
+| `/dsa/[problemId]` | Problem solving page (split: description + Monaco editor) |
+| `/profile` | Profile, badges, achievements |
+
+#### [NEW] Core Components
+- `Navbar` — responsive navigation, user XP indicator
+- `XPBar` — animated progress bar showing level progress
+- `StreakBadge` — fire icon with current streak count
+- `LessonCard` — lesson tile showing completion status
+- `CodeEditor` — Monaco editor wrapper with language support
+- `QuizModal` — animated quiz overlay per lesson
+- `ProblemCard` — DSA problem tile (difficulty chip, tags)
+- `AnimatedDiagram` — Framer Motion visualizations (array ops, stack)
+- `AuthProvider` — JWT token context for all protected routes
+
+#### [NEW] Design System
+- Dark theme by default (VSCode-inspired dark background)
+- Accent: vibrant purple-to-blue gradient (`#7C3AED → #2563EB`)
+- Typography: **Inter** from Google Fonts
+- Glassmorphism cards, subtle glow on hover
+- Smooth page transitions with Framer Motion
+
+---
+
+## Verification Plan
+
+### Automated / Dev-server Tests
+
+#### 1. Backend API (manual curl / browser)
+```bash
+cd f:/futf/backend
+npm run dev
+# Then test:
+# POST http://localhost:5000/api/auth/register  { name, email, password }
+# POST http://localhost:5000/api/auth/login     { email, password }
+# GET  http://localhost:5000/api/courses        (with Bearer token)
+# GET  http://localhost:5000/api/problems       (with Bearer token)
+# POST http://localhost:5000/api/execute        { code, language }
+```
+
+#### 2. Frontend Dev Server
+```bash
+cd f:/futf/frontend
+npm run dev
+# Visit http://localhost:3000
+```
+
+### Manual Verification (key user flows)
+
+1. **Auth flow** — Register an account → login → see dashboard with 0 XP, 0 streak
+2. **Learning flow** — Click Python → open a lesson → read content → run code in Monaco Editor → complete quiz → XP increases
+3. **DSA flow** — Go to DSA → pick an Array problem → write solution → submit → see pass/fail per test case
+4. **Gamification** — Complete 3 lessons → verify XP increases and level badge updates
+5. **Progress persistence** — Refresh browser → completed lessons still green, XP maintained
