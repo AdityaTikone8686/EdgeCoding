@@ -10,11 +10,12 @@ import CoursePreviewSection from './components/CoursePreviewSection';
 import AboutSection from './components/AboutSection';
 import DashboardPreview from './components/DashboardPreview';
 import AuthSystem from './components/AuthSystem';
+import Register from './components/Register';  
 import Footer from './components/Footer';
 
 export default function App() {
   const { isDark, toggleTheme } = useTheme();
-  const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
+  const [authMode, setAuthMode] = useState('login'); 
 
   return (
     <div className={`min-h-screen ${isDark ? 'dark' : ''}`}>
@@ -48,9 +49,12 @@ export default function App() {
                 />
               }
             />
-            <Route path="/register" element={<Register />} />
+
+            <Route
+              path="/register"
+              element={<Register />}
+            />
           </Routes>
-          
 
           {/* Footer */}
           <Footer />
@@ -59,3 +63,4 @@ export default function App() {
     </div>
   );
 }
+
