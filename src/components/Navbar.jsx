@@ -72,7 +72,7 @@ export default function Navbar({ isDark, toggleTheme, onOpenAuth }) {
                             {/* Auth Buttons */}
                             <div className="hidden md:flex items-center gap-2">
                                 <button
-                                    onClick={() => onOpenAuth('login')}
+                                    onClick={() => navigate('/AuthSystem')}
                                     className="px-4 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10 transition-all"
                                 >
                                     Login
