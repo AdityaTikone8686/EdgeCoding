@@ -236,7 +236,7 @@ const validateStep1 = () => {
 const sendOTP = async () => {
   setLoad(true);
   try {
-    const res = await fetch("http://localhost:4000/api/send-otp", { // update URL if needed
+    const res = await fetch("https://edge-coding-prsk.vercel.app/api/send-otp", { // update URL if needed
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: form.email })
@@ -278,7 +278,7 @@ const verifyOTP = async () => {
   }
   setLoad(true);
   try {
-    const res = await fetch("http://localhost:4000/api/verify-otp", { // update URL if needed
+    const res = await fetch("https://edge-coding-prsk.vercel.app/api/verify-otp", { // update URL if needed
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: form.email, code })
