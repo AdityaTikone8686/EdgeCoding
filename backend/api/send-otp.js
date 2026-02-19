@@ -1,36 +1,34 @@
-import express from "express";
-import nodemailer from "nodemailer";
+// send-otp.js
+import nodemailer from 'nodemailer';
 
-const router = express.Router();
-const otpStore = {}; // temporary in-memory store: { email: otp }
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
 
-router.post("/", async (req, res) => {
   const { email } = req.body;
-  if (!email) return res.status(400).json({ success: false, message: "Email is required" });
+  if (!email) return res.status(400).json({ message: 'Email required' });
 
-  // Generate 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  otpStore[email] = otp;
+  // Example transporter using Gmail
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER, // set in Vercel
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
 
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-    });
-
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
-      subject: "Your OTP Code",
-      text: `Your OTP code is ${otp}. It is valid for 5 minutes.`,
+      subject: 'Your OTP Code',
+      text: `Your OTP code is: ${code}`
     });
-
-    res.json({ success: true, message: "OTP sent successfully" });
+    return res.status(200).json({ success: true, code });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: "Failed to send OTP" });
+    return res.status(500).json({ success: false, message: 'Email sending failed' });
   }
-});
-
-export default router;
+}
 
