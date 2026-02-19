@@ -1,28 +1,24 @@
-// Simple in-memory OTP store (shared with send-otp)
-const otpStore = {};
+import otpStore from "./otpStore";
 
-/**
- * POST /api/verify-otp
- * Body: { email: string, code: string }
- */
 export default function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
+  res.setHeader("Access-Control-Allow-Origin", "https://edge-coding.vercel.app");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
 
   const { email, code } = req.body;
+  if (!email || !code) return res.status(400).json({ message: "Email and code are required" });
 
-  if (!email || !code) {
-    return res.status(400).json({ success: false, message: 'Email and OTP code are required' });
-  }
-
-  // Check if OTP matches
-  if (otpStore[email] && otpStore[email] === code) {
-    // OTP is correct, remove it after verification
+  const record = otpStore[email];
+  if (!record) return res.status(400).json({ message: "No OTP found" });
+  if (Date.now() > record.expires) {
     delete otpStore[email];
-    return res.status(200).json({ success: true, message: 'OTP verified successfully' });
+    return res.status(400).json({ message: "OTP expired" });
   }
+  if (record.code !== code) return res.status(400).json({ message: "Invalid OTP" });
 
-  // OTP invalid
-  return res.status(400).json({ success: false, message: 'Invalid OTP' });
+  delete otpStore[email];
+  res.status(200).json({ success: true, message: "OTP verified" });
 }
