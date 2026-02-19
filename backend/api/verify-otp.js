@@ -1,7 +1,7 @@
-// api/verify-otp.js
 import otpStore from "./otpStore.js";
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
+  // CORS headers
   res.setHeader("Access-Control-Allow-Origin", "https://edge-coding.vercel.app");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -10,7 +10,10 @@ export default function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
 
   try {
-    const { email, code } = req.body;
+    // Parse JSON manually
+    const body = await req.json?.() || JSON.parse(req.body || "{}");
+    const { email, code } = body;
+
     if (!email || !code) return res.status(400).json({ message: "Email and OTP are required" });
 
     const record = otpStore[email];
