@@ -512,7 +512,7 @@ export default function RegisterPage(){
                   ))}
                 </div>
 
-                <PrimaryBtn onClick={()=>setPage("login")}>
+                <PrimaryBtn onClick={()=> navigate("/login")}>
                   <Zap size={15}/>Go to Login<ArrowRight size={15}/>
                 </PrimaryBtn>
               </div>
