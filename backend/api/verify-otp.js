@@ -1,18 +1,22 @@
+import { otpStore } from "./send-otp";
+
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ success: false, message: "Method not allowed" });
-  }
+  if (req.method !== "POST") return res.status(405).json({ success: false, message: "Method not allowed" });
 
   const { email, code } = req.body;
-  if (!email || !code) {
-    return res.status(400).json({ success: false, message: "Email and OTP are required" });
+  if (!email || !code) return res.status(400).json({ success: false, message: "Email and OTP code are required" });
+
+  const record = otpStore[email];
+  if (!record) return res.status(400).json({ success: false, message: "No OTP found. Please request again." });
+  if (record.expires < Date.now()) {
+    delete otpStore[email];
+    return res.status(400).json({ success: false, message: "OTP expired. Please request again." });
   }
 
-  // Demo verification: in production, check the OTP from database or cache
-  // For now, accept any 6-digit code
-  if (code.length === 6) {
-    return res.status(200).json({ success: true, message: "OTP verified" });
-  } else {
-    return res.status(400).json({ success: false, message: "Invalid OTP" });
-  }
+  if (record.otp !== code) return res.status(400).json({ success: false, message: "Invalid OTP" });
+
+  // OTP correct, remove from store
+  delete otpStore[email];
+
+  return res.status(200).json({ success: true, message: "OTP verified successfully" });
 }
