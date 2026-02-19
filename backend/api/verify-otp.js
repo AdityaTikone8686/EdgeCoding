@@ -1,22 +1,18 @@
-import { otpStore } from "./send-otp";
+import express from "express";
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ success: false, message: "Method not allowed" });
+const router = express.Router();
+const otpStore = {}; // same in-memory store; ideally share with send-otp.js
 
+router.post("/", (req, res) => {
   const { email, code } = req.body;
-  if (!email || !code) return res.status(400).json({ success: false, message: "Email and OTP code are required" });
+  if (!email || !code) return res.status(400).json({ success: false, message: "Email and OTP required" });
 
-  const record = otpStore[email];
-  if (!record) return res.status(400).json({ success: false, message: "No OTP found. Please request again." });
-  if (record.expires < Date.now()) {
-    delete otpStore[email];
-    return res.status(400).json({ success: false, message: "OTP expired. Please request again." });
+  if (otpStore[email] === code) {
+    delete otpStore[email]; // OTP consumed
+    return res.json({ success: true, message: "OTP verified" });
+  } else {
+    return res.status(400).json({ success: false, message: "Invalid OTP" });
   }
+});
 
-  if (record.otp !== code) return res.status(400).json({ success: false, message: "Invalid OTP" });
-
-  // OTP correct, remove from store
-  delete otpStore[email];
-
-  return res.status(200).json({ success: true, message: "OTP verified successfully" });
-}
+export default router;
