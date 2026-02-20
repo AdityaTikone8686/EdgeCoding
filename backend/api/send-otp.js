@@ -1,10 +1,33 @@
 // api/send-otp.js
 import { MongoClient } from "mongodb";
 
-let cachedClient = null;
+const uri = process.env.MONGODB_URI;
+const dbName = process.env.DB_NAME;
+
+let cachedClient = global._mongoClient;
+let cachedDb = global._mongoDb;
+
+async function connectToDatabase() {
+  if (cachedClient && cachedDb) {
+    return { client: cachedClient, db: cachedDb };
+  }
+
+  const client = new MongoClient(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  await client.connect();
+
+  const db = client.db(dbName);
+
+  global._mongoClient = client;
+  global._mongoDb = db;
+
+  return { client, db };
+}
 
 export default async function handler(req, res) {
-  // ✅ CORS headers FIRST (before anything else)
   res.setHeader("Access-Control-Allow-Origin", "https://edge-coding.vercel.app");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -18,24 +41,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    const uri = process.env.MONGODB_URI;
-    const dbName = process.env.DB_NAME;
-
     if (!uri || !dbName) {
-      return res.status(500).json({ message: "Environment variables not set" });
+      return res.status(500).json({ message: "Environment variables missing" });
     }
 
-    if (!cachedClient) {
-      cachedClient = new MongoClient(uri);
-      await cachedClient.connect();
-    }
-
-    const db = cachedClient.db(dbName);
+    const { db } = await connectToDatabase();
 
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ message: "Email is required" });
+      return res.status(400).json({ message: "Email required" });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -45,8 +60,8 @@ export default async function handler(req, res) {
       {
         $set: {
           otp,
-          expiresAt: Date.now() + 5 * 60 * 1000
-        }
+          expiresAt: Date.now() + 5 * 60 * 1000,
+        },
       },
       { upsert: true }
     );
@@ -54,6 +69,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error("SEND OTP ERROR:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ message: error.message });
   }
 }
