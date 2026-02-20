@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import { MongoClient } from "mongodb";
 import sendOtpRoute from "./api/send-otp.js";
 import verifyOtpRoute from "./api/verify-otp.js";
+import forgotPasswordRoute from "./api/forgot-password.js";
+import resetPasswordRoute from "./api/reset-password.js";
 
 dotenv.config();
 
@@ -18,7 +20,8 @@ app.locals.db = db;
 
 app.use("/api/send-otp", sendOtpRoute);
 app.use("/api/verify-otp", verifyOtpRoute);
-
+app.use("/api/forgot-password", forgotPasswordRoute);
+app.use("/api/reset-password", resetPasswordRoute);
 app.get("/", (req, res) => res.send("Backend is running"));
 
 const PORT = process.env.PORT || 4000;
