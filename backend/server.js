@@ -10,18 +10,29 @@ import resetPasswordRoute from "./api/reset-password.js";
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// Allow CORS from frontend
+app.use(cors({
+  origin: ["https://edge-coding.vercel.app", "http://localhost:3000"], // frontend URLs
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
 app.use(express.json());
 
+// Connect to MongoDB
 const client = new MongoClient(process.env.MONGODB_URI);
 await client.connect();
 const db = client.db(process.env.DB_NAME);
 app.locals.db = db;
 
+// Routes
 app.use("/api/send-otp", sendOtpRoute);
 app.use("/api/verify-otp", verifyOtpRoute);
 app.use("/api/forgot-password", forgotPasswordRoute);
 app.use("/api/reset-password", resetPasswordRoute);
+
+// Root route
 app.get("/", (req, res) => res.send("Backend is running"));
 
 const PORT = process.env.PORT || 4000;
