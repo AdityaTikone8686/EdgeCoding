@@ -146,11 +146,41 @@ export default function LoginPage(){
     return!Object.keys(e).length;
   };
 
-  const submit=()=>{
-    if(!validate())return;
-    setLoad(true);
-    setTimeout(()=>{setLoad(false);alert("✅ Logged in successfully! (Connect your backend here)");},2000);
-  };
+  const submit = async () => {
+  if (!validate()) return;
+
+  setLoad(true);
+
+  try {
+    const res = await fetch(
+      "https://edge-coding-prsk.vercel.app/api/login",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email,
+          password: pass,
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Login failed");
+      return;
+    }
+
+    alert("✅ Login successful!");
+    navigate("/dashboard"); // change route if needed
+
+  } catch (error) {
+    console.error(error);
+    alert("Server error. Try again.");
+  } finally {
+    setLoad(false);
+  }
+};
 
   // Simulate other pages for demo
   if(page==="register") return <RegisterSimulator onBack={()=>setPage("login")}/>;
