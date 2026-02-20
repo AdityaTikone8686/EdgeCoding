@@ -239,7 +239,7 @@ const sendOTP = async () => {
     const res = await fetch("https://edge-coding-prsk.vercel.app/api/send-otp", { // update URL if needed
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: form.email })
+      body: JSON.stringify({ email: form.email, password: form.pass })
     });
     const data = await res.json();
     if (res.ok && data.success) {
