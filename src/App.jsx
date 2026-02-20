@@ -12,8 +12,8 @@ import DashboardPreview from './components/DashboardPreview';
 import AuthSystem from './components/AuthSystem';
 import Register from './components/Register';  
 import Footer from './components/Footer';
-import ForgotPassword from "./ForgotPassword";
-import ResetPassword from "./ResetPassword";
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 
 export default function App() {
   const { isDark, toggleTheme } = useTheme();
