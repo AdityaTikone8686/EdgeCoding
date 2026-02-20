@@ -2,11 +2,23 @@ import { MongoClient } from "mongodb";
 import bcrypt from "bcrypt";
 
 const client = new MongoClient(process.env.MONGODB_URI);
-
 let clientPromise = client.connect();
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Origin", "*"); // or your frontend URL
+    res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    return res.status(200).end();
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
+  }
+
+  // Allow CORS for actual POST
+  res.setHeader("Access-Control-Allow-Origin", "*"); // or your frontend URL
 
   try {
     const { token, password } = req.body;
