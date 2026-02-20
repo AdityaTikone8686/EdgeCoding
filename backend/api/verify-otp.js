@@ -57,36 +57,31 @@ export default async function handler(req, res) {
     // ✅ OTP valid — delete it
     await db.collection("otps").deleteOne({ email });
 
-    // 🔍 Check if user already exists
-    const existingUser = await db.collection("users").findOne({ email });
+    // ✅ Mark user as verified
+    await db.collection("users").updateOne(
+      { email },
+      { $set: { isVerified: true } }
+    );
 
-    if (!existingUser) {
-      // 👤 Create new user
-      await db.collection("users").insertOne({
-        email,
-        createdAt: new Date(),
-      });
+    // 📧 Send Welcome Email
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
 
-      // 📧 Send Welcome Email
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-      });
-
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: "Welcome to Edge Coding 🎉",
-        html: `
-          <h2>Welcome to Edge Coding!</h2>
-          <p>Your account has been successfully created.</p>
-          <p>We're excited to have you onboard 🚀</p>
-        `,
-      });
-    }
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Welcome to Edge Coding 🎉",
+      html: `
+        <h2>Welcome to Edge Coding!</h2>
+        <p>Your account has been successfully verified.</p>
+        <p>You can now login using your email and password.</p>
+      `,
+    });
 
     return res.status(200).json({
       success: true,
