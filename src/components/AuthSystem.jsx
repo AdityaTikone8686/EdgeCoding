@@ -275,30 +275,3 @@ export default function LoginPage(){
   );
 }
 
-/* ── Stub simulators so the demo is self-contained ── */
-function RegisterSimulator({onBack}){
-  return(
-    <div style={{minHeight:"100vh",background:"#03050d",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16}}>
-      <Styles/>
-      <Background/>
-      <div style={{position:"relative",zIndex:1,background:"rgba(8,12,26,.9)",border:"1px solid rgba(99,102,241,.2)",borderRadius:20,padding:"32px 36px",textAlign:"center",maxWidth:360}}>
-        <p style={{fontFamily:"'Syne',sans-serif",color:"#fff",fontSize:18,fontWeight:700,marginBottom:8}}>Register Page</p>
-        <p style={{fontFamily:"'DM Sans',sans-serif",color:"#64748b",fontSize:13,marginBottom:20}}>In your real app, this routes to <code style={{color:"#818cf8"}}>/register</code></p>
-        <button type="button" onClick={onBack} style={{background:"linear-gradient(135deg,#6366f1,#8b5cf6)",color:"#fff",border:"none",borderRadius:10,padding:"10px 20px",cursor:"pointer",fontFamily:"'Syne',sans-serif",fontWeight:700}}>← Back to Login</button>
-      </div>
-    </div>
-  );
-}
-function ForgotSimulator({onBack}){
-  return(
-    <div style={{minHeight:"100vh",background:"#03050d",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16}}>
-      <Styles/>
-      <Background/>
-      <div style={{position:"relative",zIndex:1,background:"rgba(8,12,26,.9)",border:"1px solid rgba(99,102,241,.2)",borderRadius:20,padding:"32px 36px",textAlign:"center",maxWidth:360}}>
-        <p style={{fontFamily:"'Syne',sans-serif",color:"#fff",fontSize:18,fontWeight:700,marginBottom:8}}>Forgot Password Page</p>
-        <p style={{fontFamily:"'DM Sans',sans-serif",color:"#64748b",fontSize:13,marginBottom:20}}>In your real app, this routes to <code style={{color:"#818cf8"}}>/forgot-password</code></p>
-        <button type="button" onClick={onBack} style={{background:"linear-gradient(135deg,#6366f1,#8b5cf6)",color:"#fff",border:"none",borderRadius:10,padding:"10px 20px",cursor:"pointer",fontFamily:"'Syne',sans-serif",fontWeight:700}}>← Back to Login</button>
-      </div>
-    </div>
-  );
-}
