@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Mail, Lock, Eye, EyeOff, Zap, ArrowRight,
   Github, Chrome, ShieldCheck, AlertCircle
@@ -239,7 +239,12 @@ export default function LoginPage(){
                   <input type="checkbox" checked={remember} onChange={e=>setRem(e.target.checked)} style={{accentColor:"#6366f1",width:15,height:15}}/>
                   <span style={{fontSize:13,color:"#64748b",fontFamily:"'DM Sans',sans-serif"}}>Remember me</span>
                 </label>
-                <LinkBtn onClick={()=>setPage("forgot")}>Forgot password?</LinkBtn>
+                <Link 
+  to="/forgot-password" 
+  style={{ color: "#6366f1", textDecoration: "none", fontSize: 13, fontFamily: "'DM Sans',sans-serif" }}
+>
+  Forgot password?
+</Link>
               </div>
 
               {/* Submit */}
