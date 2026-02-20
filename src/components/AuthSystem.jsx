@@ -179,10 +179,6 @@ export default function LoginPage(){
   }
 };
 
-  // Simulate other pages for demo
-  if(page==="register") return <RegisterSimulator onBack={()=>setPage("login")}/>;
-  
-
   return(
     <div style={{minHeight:"100vh",display:"flex",position:"relative"}}>
       <Styles/>
