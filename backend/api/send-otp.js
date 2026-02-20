@@ -1,5 +1,6 @@
 // api/send-otp.js
 import { MongoClient } from "mongodb";
+import nodemailer from "nodemailer";
 
 const uri = process.env.MONGODB_URI;
 const dbName = process.env.DB_NAME;
@@ -12,11 +13,7 @@ async function connectToDatabase() {
     return { client: cachedClient, db: cachedDb };
   }
 
-  const client = new MongoClient(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-
+  const client = new MongoClient(uri);
   await client.connect();
 
   const db = client.db(dbName);
@@ -46,7 +43,6 @@ export default async function handler(req, res) {
     }
 
     const { db } = await connectToDatabase();
-
     const { email } = req.body;
 
     if (!email) {
@@ -55,6 +51,7 @@ export default async function handler(req, res) {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
+    // Save OTP in DB
     await db.collection("otps").updateOne(
       { email },
       {
@@ -65,6 +62,27 @@ export default async function handler(req, res) {
       },
       { upsert: true }
     );
+
+    // ✅ Send Email
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Your Verification Code",
+      html: `
+        <h2>Your OTP Code</h2>
+        <p>Your verification code is:</p>
+        <h1>${otp}</h1>
+        <p>This OTP expires in 5 minutes.</p>
+      `,
+    });
 
     return res.status(200).json({ success: true });
   } catch (error) {
