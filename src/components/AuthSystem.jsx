@@ -237,7 +237,7 @@ export default function LoginPage(){
                   <span style={{fontSize:13,color:"#64748b",fontFamily:"'DM Sans',sans-serif"}}>Remember me</span>
                 </label>
                 <Link 
-  to="/forgot-password" 
+  to="/ForgotPassword" 
   style={{ color: "#6366f1", textDecoration: "none", fontSize: 13, fontFamily: "'DM Sans',sans-serif" }}
 >
   Forgot password?
