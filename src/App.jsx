@@ -12,6 +12,8 @@ import DashboardPreview from './components/DashboardPreview';
 import AuthSystem from './components/AuthSystem';
 import Register from './components/Register';  
 import Footer from './components/Footer';
+import ForgotPassword from "./ForgotPassword";
+import ResetPassword from "./ResetPassword";
 
 export default function App() {
   const { isDark, toggleTheme } = useTheme();
@@ -54,6 +56,8 @@ export default function App() {
               path="/register"
               element={<Register />}
             />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
           </Routes>
 
           {/* Footer */}
