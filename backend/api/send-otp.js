@@ -1,6 +1,7 @@
 // api/send-otp.js
 import { MongoClient } from "mongodb";
 import nodemailer from "nodemailer";
+import bcrypt from "bcryptjs";
 
 const uri = process.env.MONGODB_URI;
 const dbName = process.env.DB_NAME;
@@ -43,15 +44,33 @@ export default async function handler(req, res) {
     }
 
     const { db } = await connectToDatabase();
-    const { email } = req.body;
+    const { email, password } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ message: "Email required" });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password required" });
     }
 
+    // 🔍 Check if user already exists
+    const existingUser = await db.collection("users").findOne({ email });
+
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // 🔐 Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 👤 Insert user
+    await db.collection("users").insertOne({
+      email,
+      password: hashedPassword,
+      isVerified: false,
+      createdAt: new Date(),
+    });
+
+    // 🔢 Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Save OTP in DB
     await db.collection("otps").updateOne(
       { email },
       {
@@ -63,7 +82,7 @@ export default async function handler(req, res) {
       { upsert: true }
     );
 
-    // ✅ Send Email
+    // 📧 Send Email
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -78,13 +97,13 @@ export default async function handler(req, res) {
       subject: "Your Verification Code",
       html: `
         <h2>Your OTP Code</h2>
-        <p>Your verification code is:</p>
         <h1>${otp}</h1>
         <p>This OTP expires in 5 minutes.</p>
       `,
     });
 
     return res.status(200).json({ success: true });
+
   } catch (error) {
     console.error("SEND OTP ERROR:", error);
     return res.status(500).json({ message: error.message });
