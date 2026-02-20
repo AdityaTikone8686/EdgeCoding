@@ -1,34 +1,64 @@
-import express from "express";
-import { connectToDB } from "../mongodb.js";
+import { MongoClient } from "mongodb";
 
-const router = express.Router();
+const uri = process.env.MONGODB_URI;
+const dbName = process.env.DB_NAME;
 
-router.post("/", async (req, res) => {
+let client;
+let clientPromise;
+
+if (!uri) {
+  throw new Error("Please add MONGODB_URI to Vercel Environment Variables");
+}
+
+if (!global._mongoClientPromise) {
+  client = new MongoClient(uri);
+  global._mongoClientPromise = client.connect();
+}
+clientPromise = global._mongoClientPromise;
+
+export default async function handler(req, res) {
+  // 🔥 CORS HEADERS
+  res.setHeader("Access-Control-Allow-Origin", "https://edge-coding.vercel.app");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
+  }
+
   try {
     const { email, code } = req.body;
 
-    if (!email || !code)
+    if (!email || !code) {
       return res.status(400).json({ message: "Email and OTP are required" });
+    }
 
-    const { db } = await connectToDB();
+    const client = await clientPromise;
+    const db = client.db(dbName);
 
     const record = await db.collection("otps").findOne({ email });
-    if (!record)
-      return res.status(404).json({ message: "OTP not found" });
 
-    if (record.expiresAt < Date.now())
+    if (!record) {
+      return res.status(404).json({ message: "No OTP found" });
+    }
+
+    if (record.expiresAt < Date.now()) {
       return res.status(410).json({ message: "OTP expired" });
+    }
 
-    if (record.otp !== code)
+    if (record.otp !== code) {
       return res.status(401).json({ message: "Invalid OTP" });
+    }
 
     await db.collection("otps").deleteOne({ email });
 
-    return res.status(200).json({ success: true });
-  } catch (err) {
-    console.error("VERIFY OTP ERROR:", err);
+    return res.status(200).json({ success: true, message: "OTP verified" });
+  } catch (error) {
+    console.error("VERIFY OTP ERROR:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
-});
-
-export default router;
+}
