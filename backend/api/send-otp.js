@@ -1,19 +1,30 @@
 // api/send-otp.js
-import express from "express";
-import nodemailer from "nodemailer";
-import { connectToDB } from "../mongodb.js";
+import { connectToDB } from "./mongo-db.js";
 
-const router = express.Router();
+export default async function handler(req, res) {
+  // 🔥 CORS HEADERS
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-router.post("/", async (req, res) => {
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
+  }
+
   try {
     const { email } = req.body;
-    if (!email)
-      return res.status(400).json({ message: "Email is required" });
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    if (!email) {
+      return res.status(400).json({ message: "Email required" });
+    }
 
     const { db } = await connectToDB();
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     await db.collection("otps").updateOne(
       { email },
@@ -21,13 +32,9 @@ router.post("/", async (req, res) => {
       { upsert: true }
     );
 
-    res.status(200).json({ success: true });
+    return res.status(200).json({ success: true });
   } catch (err) {
-    console.error("SEND OTP ERROR:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
   }
-});
-
-export default router;
-
-
+}
