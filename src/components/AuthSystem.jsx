@@ -135,9 +135,6 @@ export default function LoginPage(){
   const [remember,setRem]=useState(false);
   const navigate = useNavigate();
 
-  // Simulate navigation (replace with router in real app)
-  const [page,setPage]=useState("login");
-
   const validate=()=>{
     const e={};
     if(!email.includes("@"))e.email="Enter a valid email address";
@@ -184,7 +181,7 @@ export default function LoginPage(){
 
   // Simulate other pages for demo
   if(page==="register") return <RegisterSimulator onBack={()=>setPage("login")}/>;
-  if(page==="forgot")   return <ForgotSimulator   onBack={()=>setPage("login")}/>;
+  
 
   return(
     <div style={{minHeight:"100vh",display:"flex",position:"relative"}}>
