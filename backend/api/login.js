@@ -43,7 +43,7 @@ export default async function handler(req, res) {
 
     const user = await db.collection("users").findOne({ email });
 
-    if (!user) {
+    if (!user || !user.password) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
