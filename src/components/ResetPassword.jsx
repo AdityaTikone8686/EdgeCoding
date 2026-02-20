@@ -9,6 +9,8 @@ export default function ResetPassword() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token"); // get token from URL
 
+  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:4000";
+
   const submit = async () => {
     if (!password || password.length < 6) {
       setError("Password must be at least 6 characters");
@@ -19,7 +21,7 @@ export default function ResetPassword() {
     setError("");
 
     try {
-      const res = await fetch("/api/reset-password", {
+      const res = await fetch("https://edge-coding-prsk.vercel.app/api/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password }),
@@ -33,7 +35,7 @@ export default function ResetPassword() {
       }
 
       alert("✅ Password reset successful! Redirecting to login...");
-      navigate("/login"); // redirect after success
+      navigate("/login");
     } catch (err) {
       console.error(err);
       setError("Server error. Try again.");
@@ -57,7 +59,9 @@ export default function ResetPassword() {
         <button
           onClick={submit}
           disabled={loading}
-          className="w-full p-3 rounded bg-indigo-600 hover:bg-indigo-500 font-bold"
+          className={`w-full p-3 rounded font-bold ${
+            loading ? "bg-gray-500 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-500"
+          }`}
         >
           {loading ? "Resetting..." : "Reset Password"}
         </button>
