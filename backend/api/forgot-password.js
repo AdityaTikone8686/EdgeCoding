@@ -15,9 +15,20 @@ if (!global._mongoClientPromise) {
 clientPromise = global._mongoClientPromise;
 
 export default async function handler(req, res) {
+  // Handle CORS preflight request
+  if (req.method === "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Origin", "*"); // or your frontend URL
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    return res.status(200).end();
+  }
+
+  // Only allow POST
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
+
+  res.setHeader("Access-Control-Allow-Origin", "*"); // again for POST response
 
   try {
     const { email } = req.body;
@@ -26,44 +37,31 @@ export default async function handler(req, res) {
     const db = client.db(dbName);
 
     const user = await db.collection("users").findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     const resetToken = crypto.randomBytes(32).toString("hex");
     const expiresAt = Date.now() + 15 * 60 * 1000;
 
     await db.collection("users").updateOne(
       { email },
-      {
-        $set: {
-          resetToken,
-          resetExpires: expiresAt,
-        },
-      }
+      { $set: { resetToken, resetExpires: expiresAt } }
     );
 
     const resetLink = `https://edge-coding.vercel.app/reset-password?token=${resetToken}`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
     });
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Reset Your Password",
-      html: `
-        <h2>Password Reset</h2>
-        <p>Click below to reset your password:</p>
-        <a href="${resetLink}">${resetLink}</a>
-        <p>This link expires in 15 minutes.</p>
-      `,
+      html: `<h2>Password Reset</h2>
+             <p>Click below to reset your password:</p>
+             <a href="${resetLink}">${resetLink}</a>
+             <p>This link expires in 15 minutes.</p>`,
     });
 
     return res.status(200).json({ message: "Reset link sent" });
